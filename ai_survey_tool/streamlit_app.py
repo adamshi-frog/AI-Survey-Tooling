@@ -67,8 +67,8 @@ def analyze_survey_data(survey_data: pd.DataFrame) -> Dict[str, str]:
                 continue
 
             responses_text = "\n".join([str(response) for response in question_responses])
-            custom_prompt = f"Analyze the attached consumer survey data. Identify and summarize the most significant emerging consumer trends, shifts in preferences, and mentions of new products or services. Segment your findings by relevant demographics, time periods, and product categories. Highlight any anomalies or unexpected patterns, and provide supporting evidence from the data for each identified trend:\n{responses_text}\n\nProvide a concise summary."
-
+            custom_prompt = f"Pretend that you are a top tier consumer venture capital firm investor, who wants to capture consumer insights to make investable decisions. Analyze the attached consumer survey data. Identify and summarize the most significant emerging consumer trends, shifts in preferences, and mentions of new products or services. Segment your findings by relevant demographics, time periods, and product categories. The firm also privatizes trends with scalable path to acquire new customers and reason for consumers to continue to stay engaged. Highlight any anomalies or unexpected patterns, and provide supporting evidence from the data for each identified trend:\n{responses_text}\n\nProvide a concise summary."
+            
             try:
                 messages = [
                     {"role": "system", "content": "You are a helpful assistant that analyzes survey responses."},
