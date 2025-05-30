@@ -21,25 +21,15 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS styling
+# Custom CSS styling (simplified since config.toml handles main theme)
 st.markdown("""
     <style>
-        h1 {
-            color: #a3ba65 !important;
-            font-weight: bold !important;
-        }
-        h2 {
-            color: #a3ba65 !important;
-            font-weight: bold !important;
-        }
-        h3 {
-            color: #a3ba65 !important;
-            font-weight: bold !important;
-        }
-        .stButton > button {
-            background-color: #a3ba65;
-            color: white;
-            border: none;
+        /* Additional styling for specific elements not covered by theme */
+        .stButton > button:hover,
+        .stDownloadButton > button:hover,
+        .stFormSubmitButton > button:hover {
+            background-color: #8fa051 !important;
+            color: white !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -53,6 +43,44 @@ if 'chat_history' not in st.session_state:
 
 if 'survey_data_global' not in st.session_state:
     st.session_state.survey_data_global = None
+
+# Utility function to style dataframes
+def style_dataframe(df):
+    """Apply custom styling to dataframes"""
+    return df.style.set_table_styles([
+        {
+            'selector': 'th',
+            'props': [
+                ('background-color', '#f6f6f3'),
+                ('color', '#2c2c2c'),
+                ('font-weight', 'bold'),
+                ('border', '1px solid #ddd')
+            ]
+        },
+        {
+            'selector': 'td',
+            'props': [
+                ('background-color', '#f6f6f3'),
+                ('color', '#2c2c2c'),
+                ('border', '1px solid #ddd')
+            ]
+        },
+        {
+            'selector': 'table',
+            'props': [
+                ('border-collapse', 'collapse'),
+                ('border-radius', '5px'),
+                ('overflow', 'hidden')
+            ]
+        }
+    ])
+
+def display_styled_dataframe(df, title=None):
+    """Display a dataframe with custom styling"""
+    if title:
+        st.subheader(title)
+    styled_df = style_dataframe(df)
+    st.write(styled_df.to_html(), unsafe_allow_html=True)
 
 # Load ZIP code database
 @st.cache_data
@@ -120,9 +148,13 @@ def create_map(data: pd.DataFrame, zip_column: str) -> folium.Map:
         st.write("### Cleaning ZIP Codes")
         data[zip_column] = data[zip_column].apply(clean_zip_code)
         
-        # Show cleaned data sample
+        # Show cleaned data sample with styling
         st.write("Sample of cleaned ZIP codes:")
-        st.write(data[zip_column].head())
+        zip_sample = pd.DataFrame({
+            'Original': data[zip_column].head(),
+            'Cleaned ZIP': data[zip_column].head()
+        })
+        display_styled_dataframe(zip_sample)
         
         # Group by ZIP code to get counts
         zip_counts = data[zip_column].value_counts()
@@ -239,9 +271,8 @@ else:
 
 if survey_data is not None:
     try:
-        # Show data preview
-        st.subheader("Data Preview")
-        st.dataframe(survey_data.head())
+        # Show data preview with styling
+        display_styled_dataframe(survey_data.head(), "Data Preview")
         
         # Add tabs
         tab1, tab2, tab3 = st.tabs(["Analysis", "Chat with AI", "Geographic Distribution"])
