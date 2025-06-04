@@ -1483,7 +1483,6 @@ def main():
     
     # Header
     st.markdown(f'<h1 class="main-header">Tactile Survey Analyzer</h1>', unsafe_allow_html=True)
-    st.markdown(f"**{APP_DESCRIPTION}**")
     
     # Sidebar configuration
     with st.sidebar:
@@ -1534,27 +1533,6 @@ def main():
             run_ai_analysis = False
         
         generate_insights = st.checkbox("Generate Survey Insights", value=True)
-        
-        # Cost information
-        if run_ai_analysis and st.session_state.openai_api_key:
-            st.subheader("AI Analysis Cost")
-            st.info("""
-            **Estimated costs:**
-            - $0.01-0.02 per image
-            - Very affordable for most surveys
-            - Provides detailed insights worth the cost
-            """)
-        
-        # About section
-        st.subheader("About")
-        st.info("""
-        This comprehensive tool combines:
-        - Google Forms CSV analysis
-        - Google Drive image downloading
-        - AI-powered image analysis
-        - Interactive visualizations
-        - Detailed reporting
-        """)
     
     # Main content area
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["Upload & Process", "Survey Analysis", "Image Analysis", "Reports", "Location Map"])
@@ -1702,11 +1680,14 @@ def main():
                                 os.remove(temp_csv)
                             except:
                                 pass
+                
                 # Step 2: Download images if not done
                 if not st.session_state.get('downloaded_images'):
                     drive_analysis = st.session_state.get('drive_analysis')
                     if drive_analysis and drive_analysis.get('accessible_links',0) > 0:
-                        with st.spinner("Downloading images from Google Drive..."):
+                        progress_container = st.empty()
+                        with progress_container.container():
+                            st.spinner("Downloading images from Google Drive...")
                             downloader = EnhancedDriveDownloader(st.session_state.output_directory)
                             downloaded_images = {}
                             total = len(drive_analysis['individual_analyses'])
@@ -1721,12 +1702,16 @@ def main():
                                 prog.progress((i+1)/total)
                             st.session_state.downloaded_images = downloaded_images
                             log_processing_step(f"Downloaded {len(downloaded_images)} images", "success")
+                        progress_container.empty()
+                
                 # Step 3: Run AI analysis if not done
                 if not st.session_state.get('ai_analysis') or not st.session_state.ai_analysis.get('analysis_results'):
                     if not st.session_state.openai_api_key:
                         st.error("Please enter a valid OpenAI API key in the sidebar to enable AI analysis")
                     else:
-                        with st.spinner("Running AI analysis on images..."):
+                        analysis_container = st.empty()
+                        with analysis_container.container():
+                            st.spinner("Running AI analysis on images...")
                             tmp_csv = "temp_survey_data.csv"
                             st.session_state.survey_data.to_csv(tmp_csv, index=False)
                             analyzer = AIVisionAnalyzer(tmp_csv, st.session_state.output_directory, st.session_state.openai_api_key)
@@ -1759,6 +1744,7 @@ def main():
                                 os.remove(tmp_csv)
                             except:
                                 pass
+                        analysis_container.empty()
                         st.success("Full image analysis complete!")
                         st.session_state.analysis_complete = True
         else:
